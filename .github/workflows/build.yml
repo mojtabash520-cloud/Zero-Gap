@@ -1,11 +1,9 @@
-name: Build Flutter APK
+name: Build Android Release
 
 on:
-  workflow_dispatch: # این خط اجازه می‌دهد بیلد را دستی با یک دکمه اجرا کنید
   push:
-    branches:
-      - main
-      - master
+    branches: [ "main" ]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -13,29 +11,45 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 📥 Checkout repository
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: ☕ Setup Java
-        uses: actions/setup-java@v3
+      - name: Setup Java
+        uses: actions/setup-java@v4
         with:
-          distribution: 'zulu'
-          java-version: '17' # جاوا ۱۷ بهترین نسخه برای فلاتر جدید است
+          distribution: 'temurin'
+          java-version: '17'
 
-      - name: 🐦 Setup Flutter
+      - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
+          flutter-version: '3.22.0' # قفل شده برای پایداری
           channel: 'stable'
-          # فلاتر نسخه پایدار را دانلود می‌کند
+          cache: true
 
-      - name: 📦 Install Dependencies
+      - name: Get Dependencies
         run: flutter pub get
 
-      - name: 🛠️ Build APK
+      - name: Generate Launcher Icons
+        run: dart run flutter_launcher_icons
+
+      # اصلاح شرط بررسی سکرت‌ها برای جلوگیری از خطای سینتکس
+      - name: Setup Keystore
+        if: ${{ env.HAS_KEYSTORE == 'true' }}
+        env:
+          HAS_KEYSTORE: ${{ secrets.KEYSTORE_BASE64 != '' }}
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/upload-keystore.jks
+          echo "storeFile=upload-keystore.jks" > android/key.properties
+          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
+          echo "storePassword=${{ secrets.STORE_PASSWORD }}" >> android/key.properties
+          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
+
+      - name: Build APK
         run: flutter build apk --release
 
-      - name: 📤 Upload APK
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Dowr-Game-APK
+          name: zero-gap-release
           path: build/app/outputs/flutter-apk/app-release.apk
