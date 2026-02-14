@@ -4,7 +4,7 @@ plugins {
     id "dev.flutter.flutter-gradle-plugin"
 }
 
-// === خواندن تنظیمات محلی (Safe Load) ===
+// خواندن تنظیمات محلی
 def localProperties = new Properties()
 def localPropertiesFile = rootProject.file('local.properties')
 if (localPropertiesFile.exists()) {
@@ -13,7 +13,6 @@ if (localPropertiesFile.exists()) {
     }
 }
 
-// === تنظیم نسخه برنامه (با مقدار پیش‌فرض برای گیت‌هاب) ===
 def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
 if (flutterVersionCode == null) {
     flutterVersionCode = '1'
@@ -24,7 +23,7 @@ if (flutterVersionName == null) {
     flutterVersionName = '1.0'
 }
 
-// === تنظیمات امضا (Keystore) ===
+// تنظیمات امضا (Keystore)
 def keystoreProperties = new Properties()
 def keystorePropertiesFile = rootProject.file('../key.properties')
 if (keystorePropertiesFile.exists()) {
@@ -32,8 +31,8 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace "com.example.forbidden_line" // پکیج نیم خود را اینجا چک کنید
-    compileSdkVersion 35 // ارتقا یافته برای سازگاری با پلاگین‌ها
+    namespace "com.example.forbidden_line" // پکیج نیم
+    compileSdkVersion 35
     ndkVersion flutter.ndkVersion
 
     compileOptions {
@@ -51,13 +50,10 @@ android {
 
     defaultConfig {
         applicationId "com.example.forbidden_line"
-        minSdkVersion 24 // حداقل نسخه مناسب
+        minSdkVersion 24 
         targetSdkVersion 35
-        
-        // تبدیل امن به عدد صحیح
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
-        
         multiDexEnabled true
     }
 
@@ -74,11 +70,16 @@ android {
 
     buildTypes {
         release {
+            // === تغییر مهم برای رفع مشکل نصب ===
+            // اگر کلید اصلی وجود داشت، با آن امضا کن.
+            // اگر نبود (مثل الان در گیت‌هاب)، با کلید دیباگ امضا کن تا قابل نصب باشد.
             if (keystoreProperties['storeFile']) {
                 signingConfig signingConfigs.release
+            } else {
+                signingConfig signingConfigs.debug
             }
-            // فشرده‌سازی کدها برای کاهش حجم
-            minifyEnabled true
+            
+            minifyEnabled true 
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
@@ -90,7 +91,6 @@ flutter {
 }
 
 dependencies {
-    // نسخه کاتلین از فایل build.gradle ریشه خوانده می‌شود
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation 'com.android.support:multidex:1.0.3'
 }
