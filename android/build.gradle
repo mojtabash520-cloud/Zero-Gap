@@ -1,6 +1,5 @@
 buildscript {
-    // === تعریف متغیر حیاتی که ارور می‌داد ===
-    ext.kotlin_version = '1.9.0'
+    ext.kotlin_version = '1.9.0' // این نسخه صحیح است
     
     repositories {
         google()
@@ -8,7 +7,8 @@ buildscript {
     }
     
     dependencies {
-        // این خط برای پشتیبانی از روش‌های قدیمی لازم است
+        // === ارتقای پلاگین اندروید به نسخه 8.1.0 (حیاتی) ===
+        classpath 'com.android.tools.build:gradle:8.1.0'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
