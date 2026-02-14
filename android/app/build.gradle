@@ -4,43 +4,23 @@ plugins {
     id "dev.flutter.flutter-gradle-plugin"
 }
 
-def localProperties = new Properties()
-def localPropertiesFile = rootProject.file('local.properties')
-if (localPropertiesFile.exists()) {
-    localPropertiesFile.withReader('UTF-8') { reader ->
-        localProperties.load(reader)
-    }
-}
-
-def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
-if (flutterVersionCode == null) {
-    flutterVersionCode = '1'
-}
-
-def flutterVersionName = localProperties.getProperty('flutter.versionName')
-if (flutterVersionName == null) {
-    flutterVersionName = '1.0'
-}
-
-// === تنظیمات امضا برای گیت‌هاب (Keystore) ===
-def keystoreProperties = new Properties()
-def keystorePropertiesFile = rootProject.file('../key.properties') // به مسیر توجه کنید
-if (keystorePropertiesFile.exists()) {
-    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
-}
+// ... (کدهای مربوط به localProperties و keystore مثل قبل بماند) ...
 
 android {
-    namespace "com.example.forbidden_line" // پکیج نیم شما
-    compileSdkVersion flutter.compileSdkVersion
+    namespace "com.example.forbidden_line"
+    
+    // === ارتقا به SDK 35 (اجباری برای audioplayers) ===
+    compileSdkVersion 35
     ndkVersion flutter.ndkVersion
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        // === ارتقا به جاوا 17 (اجباری برای گریدل 8) ===
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = '17'
     }
 
     sourceSets {
@@ -49,43 +29,16 @@ android {
 
     defaultConfig {
         applicationId "com.example.forbidden_line"
-        minSdkVersion 21 // حداقل نسخه مناسب برای تپسل و فلاتر جدید
-        targetSdkVersion flutter.targetSdkVersion
+        minSdkVersion 24 // کمی بالاتر ببرید تا سازگارتر باشد
+        
+        // === ارتقا به SDK 35 ===
+        targetSdkVersion 35
+        
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
-        multiDexEnabled true // برای جلوگیری از ارور تعداد متدها
+        multiDexEnabled true
     }
-
-    signingConfigs {
-        release {
-            // خواندن اطلاعات کلید از فایل ساخته شده توسط GitHub Actions
-            if (keystoreProperties['storeFile']) {
-                keyAlias = keystoreProperties['keyAlias']
-                keyPassword = keystoreProperties['keyPassword']
-                storeFile = file(keystoreProperties['storeFile'])
-                storePassword = keystoreProperties['storePassword']
-            }
-        }
-    }
-
-    buildTypes {
-        release {
-            // اعمال امضا در نسخه ریلیز
-            if (keystoreProperties['storeFile']) {
-                signingConfig signingConfigs.release
-            }
-            minifyEnabled true // فعال کردن فشرده‌سازی برای کاهش حجم
-            shrinkResources true
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-        }
-    }
+    
+    // ... (بقیه کدها مثل signingConfigs و buildTypes بدون تغییر) ...
 }
-
-flutter {
-    source '../..'
-}
-
-dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    implementation 'com.android.support:multidex:1.0.3'
-}
+// ...
