@@ -1,6 +1,6 @@
 import 'package:tapsell_plus/tapsell_plus.dart';
 import 'package:flutter/material.dart';
-import 'package:flame_audio/flame_audio.dart'; // <--- اضافه کردن این خط
+// ایمپورت FlameAudio رو پاک کردیم چون دیگه دخالت نمی‌کنیم
 
 class AdManager {
   static const String appId = 'rhkpmtgkgoplimccapeecbrgcedlnndofpakionmffckhmhlmgdpgghkfnqfasqasoscrd';
@@ -15,39 +15,30 @@ class AdManager {
   }
 
   static void showRewardAd(BuildContext context, {required VoidCallback onRewarded, VoidCallback? onError}) async {
-    // 1. قطع موقت موزیک بازی
-    FlameAudio.bgm.pause();
-
+    // اینجا دیگه موزیک رو قطع نمی‌کنیم. اگر تداخل کرد هم اشکالی نداره (طبق خواست شما)
     try {
       String responseId = await TapsellPlus.instance.requestRewardedVideoAd(rewardZoneId);
 
       await TapsellPlus.instance.showRewardedVideoAd(
         responseId,
         onOpened: (map) => debugPrint('Ad Opened'),
-        onClosed: (map) {
-          debugPrint('Ad Closed');
-          // 2. وصل مجدد موزیک بازی
-          FlameAudio.bgm.resume();
-        },
+        onClosed: (map) => debugPrint('Ad Closed'),
         onRewarded: (map) {
           debugPrint('💎 User Rewarded!');
           onRewarded(); 
         },
         onError: (map) {
           debugPrint('❌ Ad Error: ${map['message']}');
-          // در صورت ارور هم موزیک باید برگردد
-          FlameAudio.bgm.resume();
           if (onError != null) onError();
+          // اسنک‌بار خطا
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Ad failed to load.')),
+          );
         },
       );
     } catch (e) {
-      // در صورت ارور درخواست هم موزیک باید برگردد
-      FlameAudio.bgm.resume();
       debugPrint('❌ Ad Request Error: $e');
       if (onError != null) onError();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No ad available right now.')),
-      );
     }
   }
 }
