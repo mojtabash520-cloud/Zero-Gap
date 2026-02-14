@@ -1,39 +1,42 @@
-name: forbidden_line
+name: zero_gap
 description: "A new Flutter project."
 publish_to: 'none'
-
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.0.0 <4.0.0'
+  sdk: '>=3.2.0 <4.0.0' # این بازه با Dart 3.4.0 سازگار است
 
 dependencies:
   flutter:
     sdk: flutter
-  flame: ^1.35.1
-  flame_audio: ^2.11.14
-  flutter_animate: ^4.5.2
-  shared_preferences: ^2.5.4
+  
+  # === نسخه‌های هماهنگ با Flutter 3.22.0 ===
+  flame: ^1.18.0        # نسخه 1.20 به Dart 3.5 نیاز دارد، پس به 1.18 برمی‌گردیم
+  flame_audio: ^2.1.0
+  flutter_animate: ^4.5.0
+  shared_preferences: ^2.2.2
   google_fonts: ^6.1.0
-  tapsell_plus: ^2.2.0  # <--- این خط رو اضافه کن
+  tapsell_plus: ^2.2.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^6.0.0
+  
+  # === نسخه هماهنگ با Dart 3.4 ===
+  flutter_lints: ^4.0.0  # نسخه 5.0 به Dart 3.5 نیاز دارد، پس به 4.0 برمی‌گردیم
+  
   flutter_launcher_icons: "^0.13.1"
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/audio/music/
+    - assets/audio/sfx/
+    - assets/images/
+    - assets/icon/ 
 
 flutter_icons:
   android: "launcher_icon"
   ios: true
   image_path: "assets/icon/icon.png"
-  min_sdk_android: 21 // اختیاری
-  
-flutter:
-  uses-material-design: true
-
-  # === بخش مهم: معرفی فایل‌های صوتی به پروژه ===
-  assets:
-    - assets/audio/music/
-
-    - assets/audio/sfx/
+  min_sdk_android: 21
