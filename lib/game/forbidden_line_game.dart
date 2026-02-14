@@ -60,7 +60,7 @@ class ForbiddenLineGame extends FlameGame with TapCallbacks, HasCollisionDetecti
 
   bool hasRevived = false; 
 
-  // === سیستم صوتی بهینه‌شده (Audio Pools) ===
+  // استخرهای صوتی
   late AudioPool poolWhoosh;
   late AudioPool poolTap;
   late AudioPool poolCoin;
@@ -81,18 +81,16 @@ class ForbiddenLineGame extends FlameGame with TapCallbacks, HasCollisionDetecti
   Future<void> onLoad() async {
     super.onLoad();
 
-    // لود کردن موزیک و صدای کرش (Crash معمولاً تک پخش است)
-    // فرض بر این است که bgm همچنان mp3 است چون طولانی است
-    // اما crash باید wav باشد
-    await FlameAudio.audioCache.loadAll(['sfx/crash.wav', 'music/bgm.mp3']);
+    // === تغییر مهم: استفاده از MP3 و افزایش ظرفیت پخش ===
+    // فایل‌ها رو به .mp3 برگردونید.
+    // minPlayers رو 1 و maxPlayers رو بالا (مثلا 20) می‌ذاریم تا هیچ صدایی قطع نشه
+    await FlameAudio.audioCache.loadAll(['sfx/crash.mp3', 'music/bgm.mp3']);
 
-    // === تنظیمات جدید برای رفع لگ (کاهش تعداد همزمانی) ===
-    // فایل‌ها باید فرمت .wav داشته باشند
-    poolWhoosh = await FlameAudio.createPool('sfx/whoosh.wav', minPlayers: 1, maxPlayers: 3);
-    poolTap = await FlameAudio.createPool('sfx/tap.wav', minPlayers: 1, maxPlayers: 4);
-    poolCoin = await FlameAudio.createPool('sfx/coin.wav', minPlayers: 1, maxPlayers: 4);
-    poolShield = await FlameAudio.createPool('sfx/shield.wav', minPlayers: 1, maxPlayers: 2);
-    poolIce = await FlameAudio.createPool('sfx/ice.wav', minPlayers: 1, maxPlayers: 2);
+    poolWhoosh = await FlameAudio.createPool('sfx/whoosh.mp3', minPlayers: 1, maxPlayers: 20);
+    poolTap = await FlameAudio.createPool('sfx/tap.mp3', minPlayers: 1, maxPlayers: 20);
+    poolCoin = await FlameAudio.createPool('sfx/coin.mp3', minPlayers: 1, maxPlayers: 20);
+    poolShield = await FlameAudio.createPool('sfx/shield.mp3', minPlayers: 1, maxPlayers: 10);
+    poolIce = await FlameAudio.createPool('sfx/ice.mp3', minPlayers: 1, maxPlayers: 10);
 
     prefs = await SharedPreferences.getInstance();
     highScore = prefs.getInt('high_score') ?? 0;
@@ -116,7 +114,7 @@ class ForbiddenLineGame extends FlameGame with TapCallbacks, HasCollisionDetecti
 
     world.add(ScoreDisplay());
     
-    // شروع موزیک پس‌زمینه
+    // پخش لوپ موزیک
     FlameAudio.bgm.play('music/bgm.mp3', volume: 0.5);
 
     pauseEngine(); 
@@ -150,7 +148,7 @@ class ForbiddenLineGame extends FlameGame with TapCallbacks, HasCollisionDetecti
       isActiveFreeze = true;
       activeFreezeTimer = 5.0 + (freezeLevel * 1.0); 
       
-      poolIce.start(volume: 1.0); // صدای wav
+      poolIce.start(volume: 1.0);
       
       shakeCamera(intensity: 5.0);
       HapticFeedback.mediumImpact(); 
@@ -173,20 +171,24 @@ class ForbiddenLineGame extends FlameGame with TapCallbacks, HasCollisionDetecti
 
   void pauseGameplay() {
     if (!isPlaying || isGameOver) return;
-    pauseEngine(); FlameAudio.bgm.pause(); 
+    pauseEngine(); 
+    // موزیک رو پاز نمی‌کنیم تا قطع و وصل نشه (طبق درخواست شما)
     overlays.remove('PauseButton'); overlays.remove('FreezeButton');
     overlays.add('PauseMenu'); 
     HapticFeedback.lightImpact();
   }
 
   void resumeGameplay() {
-    resumeEngine(); FlameAudio.bgm.resume(); 
+    resumeEngine(); 
     overlays.remove('PauseMenu');
     overlays.add('PauseButton'); overlays.add('FreezeButton');
   }
 
   void quitToMenu() {
-    FlameAudio.bgm.stop(); FlameAudio.bgm.play('music/bgm.mp3', volume: 0.5);
+    // ریست موزیک
+    FlameAudio.bgm.stop(); 
+    FlameAudio.bgm.play('music/bgm.mp3', volume: 0.5);
+    
     isPlaying = false; 
     overlays.remove('PauseMenu'); overlays.remove('GameOverMenu'); 
     overlays.add('MainMenu'); 
@@ -306,8 +308,7 @@ class ForbiddenLineGame extends FlameGame with TapCallbacks, HasCollisionDetecti
     overlays.remove('PauseButton'); overlays.remove('FreezeButton');
     
     FlameAudio.bgm.stop(); 
-    // صدای کرش با فرمت wav
-    FlameAudio.play('sfx/crash.wav');
+    FlameAudio.play('sfx/crash.mp3'); // mp3
     shakeCamera(intensity: 25.0); 
     HapticFeedback.heavyImpact(); 
 
@@ -330,7 +331,6 @@ class ForbiddenLineGame extends FlameGame with TapCallbacks, HasCollisionDetecti
     
     player.revive();
     
-    // دور کردن موانع نزدیک برای جلوگیری از باخت فوری
     for (var line in obstacles) {
       if ((line.position.y - player.position.y).abs() < 300) {
         line.position.y -= 600; 
@@ -372,7 +372,6 @@ class ForbiddenLineGame extends FlameGame with TapCallbacks, HasCollisionDetecti
     gridScrollOffset = 0.0;
     hasRevived = false; 
 
-    // پاکسازی کامل صحنه
     world.children.whereType<PowerUp>().forEach((powerUp) => powerUp.removeFromParent());
     world.children.whereType<TrailParticle>().forEach((trail) => trail.removeFromParent());
     world.children.whereType<DebrisParticle>().forEach((d) => d.removeFromParent()); 
