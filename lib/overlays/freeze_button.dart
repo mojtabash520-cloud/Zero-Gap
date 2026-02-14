@@ -8,76 +8,70 @@ class FreezeButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Align(
-        alignment: Alignment.bottomRight,
-        child: Padding(
-          // فاصله کمتر از لبه‌ها برای جمع‌وجورتر شدن
-          padding: const EdgeInsets.only(bottom: 20.0, right: 20.0),
-          child: ValueListenableBuilder<int>(
-            valueListenable: game.freezeCharges,
-            builder: (context, charges, child) {
-              bool canUse = charges > 0 && !game.isActiveFreeze;
+    return ValueListenableBuilder<int>(
+      valueListenable: game.freezeCharges,
+      builder: (context, count, child) {
+        bool isReady = count > 0 && !game.isActiveFreeze;
 
-              return GestureDetector(
-                onTap: () {
-                  if (canUse) game.activateFreeze();
-                },
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  // === سایز دکمه از 75 به 58 کاهش یافت ===
-                  width: 58,
-                  height: 58,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    // وقتی شارژ نداره، خیلی کمرنگ بشه تا مزاحم نباشه
-                    color: canUse
-                        ? Colors.cyanAccent.withOpacity(0.2)
-                        : Colors.black.withOpacity(0.3),
-                    border: Border.all(
-                      color: canUse ? Colors.cyanAccent : Colors.white12,
-                      width: 1.5,
+        return SafeArea(
+          child: Align(
+            alignment: Alignment.bottomLeft, // <--- تغییر به سمت چپ
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 20.0, left: 20.0), // <--- فاصله از چپ
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: isReady ? () => game.activateFreeze() : null,
+                  borderRadius: BorderRadius.circular(40),
+                  child: Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: isReady 
+                          ? Colors.cyanAccent.withOpacity(0.2) 
+                          : Colors.grey.withOpacity(0.1),
+                      border: Border.all(
+                        color: isReady ? Colors.cyanAccent : Colors.white12,
+                        width: 2,
+                      ),
+                      boxShadow: isReady
+                          ? [
+                              BoxShadow(
+                                color: Colors.cyanAccent.withOpacity(0.3),
+                                blurRadius: 15,
+                                spreadRadius: 2,
+                              )
+                            ]
+                          : [],
                     ),
-                    boxShadow: canUse
-                        ? [
-                            BoxShadow(
-                              color: Colors.cyanAccent.withOpacity(0.4),
-                              blurRadius: 10,
-                            ),
-                          ]
-                        : [],
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // آیکون برف کوچکتر
-                      Opacity(
-                        opacity: canUse ? 1.0 : 0.4,
-                        child: const Icon(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
                           Icons.ac_unit_rounded,
-                          color: Colors.white,
-                          size: 22,
+                          color: isReady ? Colors.white : Colors.white38,
+                          size: 32,
                         ),
-                      ),
-                      const SizedBox(height: 2),
-                      // عدد شارژ
-                      Text(
-                        '$charges',
-                        style: TextStyle(
-                          color: canUse ? Colors.white : Colors.white38,
-                          fontSize: 14, // فونت ریزتر
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'Courier',
+                        const SizedBox(height: 4),
+                        Text(
+                          '$count',
+                          style: TextStyle(
+                            color: isReady ? Colors.cyanAccent : Colors.white38,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            fontFamily: 'Courier',
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              );
-            },
+              ),
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
