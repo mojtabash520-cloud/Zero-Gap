@@ -1,0 +1,61 @@
+name: Build Android Release
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch: # اجازه می‌دهد دکمه Run Workflow را دستی بزنید
+
+jobs:
+  build:
+    name: Build APK
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. دریافت کدها از مخزن
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # 2. تنظیم جاوا (نسخه 17 برای سازگاری با گریدل‌های جدید)
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      # 3. تنظیم فلاتر (نسخه 3.22.0 طبق گزارش فنی شما برای پایداری)
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.22.0'
+          channel: 'stable'
+          cache: true
+
+      # 4. دریافت پکیج‌ها
+      - name: Get Dependencies
+        run: flutter pub get
+
+      # 5. ساخت آیکون‌ها (اطمینان از وجود آیکون جدید)
+      - name: Generate Launcher Icons
+        run: dart run flutter_launcher_icons
+
+      # 6. تنظیم امضای برنامه (Signing Configuration)
+      # اگر در گیت‌هاب Secret ست کرده باشید، فایل key.properties ساخته می‌شود
+      - name: Setup Keystore
+        if: ${{ secrets.KEYSTORE_BASE64 != '' }}
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/upload-keystore.jks
+          echo "storeFile=upload-keystore.jks" > android/key.properties
+          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
+          echo "storePassword=${{ secrets.STORE_PASSWORD }}" >> android/key.properties
+          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
+
+      # 7. گرفتن خروجی APK
+      - name: Build APK
+        run: flutter build apk --release
+
+      # 8. آپلود فایل نهایی در بخش Artifacts گیت‌هاب
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: zero-gap-release
+          path: build/app/outputs/flutter-apk/app-release.apk
